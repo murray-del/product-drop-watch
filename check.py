@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import html
 import json
 import os
 import smtplib
 import urllib.request
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
@@ -34,8 +36,13 @@ def fetch_products():
         return json.loads(resp.read().decode())
 
 
-def send_email(subject, body):
-    msg = MIMEText(body)
+def send_email(subject, text_body, html_body=None):
+    if html_body is None:
+        msg = MIMEText(text_body)
+    else:
+        msg = MIMEMultipart("alternative")
+        msg.attach(MIMEText(text_body, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
     msg["Subject"] = subject
     msg["From"] = GMAIL_ADDRESS
     msg["To"] = NOTIFY_EMAIL
@@ -44,13 +51,43 @@ def send_email(subject, body):
         server.sendmail(GMAIL_ADDRESS, [NOTIFY_EMAIL], msg.as_string())
 
 
-def describe(product):
+def product_url(product):
+    return "https://frankslemonadestand.bigcartel.com" + product["url"]
+
+
+def product_image(product):
+    images = product.get("images") or []
+    return images[0]["url"] if images else None
+
+
+def describe_text(product):
     price = product.get("price")
-    url = "https://frankslemonadestand.bigcartel.com" + product["url"]
-    lines = [f"{product['name']} - ${price}", url]
+    lines = [f"{product['name']} - ${price}", product_url(product)]
     if product.get("status") == "sold-out":
         lines.append("(already sold out)")
     return "\n".join(lines)
+
+
+def describe_html(product):
+    name = html.escape(product["name"])
+    price = product.get("price")
+    url = product_url(product)
+    image = product_image(product)
+    sold_out = "<p><em>(already sold out)</em></p>" if product.get("status") == "sold-out" else ""
+    image_html = (
+        f'<p><a href="{url}"><img src="{image}" alt="{name}" '
+        f'style="max-width:400px;width:100%;height:auto;display:block;"></a></p>'
+        if image
+        else ""
+    )
+    return (
+        '<div style="margin-bottom:24px;">'
+        f'<h2 style="margin-bottom:4px;"><a href="{url}">{name}</a></h2>'
+        f"<p>${price}</p>"
+        f"{image_html}"
+        f"{sold_out}"
+        "</div>"
+    )
 
 
 def main():
@@ -68,11 +105,12 @@ def main():
             f"{PRODUCTS_URL}\n\nYou'll get an email as soon as something new drops.",
         )
     elif new_products:
-        body = "\n\n".join(describe(p) for p in new_products)
+        text_body = "\n\n".join(describe_text(p) for p in new_products)
+        html_body = "".join(describe_html(p) for p in new_products)
         subject = f"New Paper Frank drop: {new_products[0]['name']}"
         if len(new_products) > 1:
             subject = f"{len(new_products)} new Paper Frank drops!"
-        send_email(subject, body)
+        send_email(subject, text_body, html_body)
 
     save_seen_ids(seen_ids | current_ids)
 
