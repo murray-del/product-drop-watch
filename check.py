@@ -94,10 +94,9 @@ def main():
         send_email(subject, text_body, html_body)
 
     sold_events = detect_sold_out(products, prev_status)
-    if sold_events:
-        log = load_sold_times()
-        log.extend(sold_events)
-        save_sold_times(log)
+    log = load_sold_times()
+    log.extend(sold_events)
+    save_sold_times(log)
 
     save_status({str(p["id"]): p.get("status") for p in products})
     save_seen_ids(seen_ids | current_ids)
