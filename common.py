@@ -3,8 +3,12 @@ import os
 import smtplib
 import urllib.request
 import json
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from zoneinfo import ZoneInfo
+
+LISTING_TZ = ZoneInfo("America/New_York")
 
 STORE_NAME = os.environ.get("STORE_DISPLAY_NAME", "the shop")
 STORE_BASE_URL = os.environ["STORE_BASE_URL"]
@@ -36,6 +40,12 @@ def send_email(subject, text_body, html_body=None):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
         server.sendmail(GMAIL_ADDRESS, [NOTIFY_EMAIL], msg.as_string())
+
+
+def listed_at(product):
+    dt = datetime.fromisoformat(product["created_at"].replace("Z", "+00:00"))
+    local = dt.astimezone(LISTING_TZ)
+    return local.strftime("%b %d, %Y"), local.strftime("%-I:%M %p %Z")
 
 
 def product_url(product):
