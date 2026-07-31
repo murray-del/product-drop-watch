@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from common import (
@@ -11,7 +12,10 @@ from common import (
     describe_html,
 )
 
-STATE_FILE = Path(__file__).parent / "state" / "seen_ids.json"
+STATE_DIR = Path(__file__).parent / "state"
+STATE_FILE = STATE_DIR / "seen_ids.json"
+STATUS_FILE = STATE_DIR / "status.json"
+SOLD_TIMES_FILE = STATE_DIR / "sold_times.json"
 
 
 def load_seen_ids():
@@ -21,13 +25,55 @@ def load_seen_ids():
 
 
 def save_seen_ids(ids):
-    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps({"seen_ids": sorted(ids)}, indent=2) + "\n")
+
+
+def load_status():
+    if not STATUS_FILE.exists():
+        return {}
+    return json.loads(STATUS_FILE.read_text())
+
+
+def save_status(status):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    STATUS_FILE.write_text(json.dumps(status, indent=2, sort_keys=True) + "\n")
+
+
+def load_sold_times():
+    if not SOLD_TIMES_FILE.exists():
+        return []
+    return json.loads(SOLD_TIMES_FILE.read_text())
+
+
+def save_sold_times(entries):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    SOLD_TIMES_FILE.write_text(json.dumps(entries, indent=2) + "\n")
+
+
+def detect_sold_out(products, prev_status):
+    now = datetime.now(timezone.utc)
+    events = []
+    for p in products:
+        pid = str(p["id"])
+        if prev_status.get(pid) == "active" and p.get("status") == "sold-out":
+            created = datetime.fromisoformat(p["created_at"].replace("Z", "+00:00"))
+            events.append(
+                {
+                    "id": p["id"],
+                    "name": p["name"],
+                    "created_at": p["created_at"],
+                    "sold_out_detected_at": now.isoformat(),
+                    "minutes_to_sell": round((now - created).total_seconds() / 60, 1),
+                }
+            )
+    return events
 
 
 def main():
     seen_ids = load_seen_ids()
     first_run = len(seen_ids) == 0
+    prev_status = load_status()
 
     products = fetch_products()
     current_ids = {p["id"] for p in products}
@@ -47,6 +93,13 @@ def main():
             subject = f"{len(new_products)} new drops!"
         send_email(subject, text_body, html_body)
 
+    sold_events = detect_sold_out(products, prev_status)
+    if sold_events:
+        log = load_sold_times()
+        log.extend(sold_events)
+        save_sold_times(log)
+
+    save_status({str(p["id"]): p.get("status") for p in products})
     save_seen_ids(seen_ids | current_ids)
 
 
