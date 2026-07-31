@@ -16,6 +16,8 @@ STATE_DIR = Path(__file__).parent / "state"
 STATE_FILE = STATE_DIR / "seen_ids.json"
 STATUS_FILE = STATE_DIR / "status.json"
 SOLD_TIMES_FILE = STATE_DIR / "sold_times.json"
+POSITIONS_FILE = STATE_DIR / "positions.json"
+REORDER_EVENTS_FILE = STATE_DIR / "reorder_events.json"
 
 
 def load_seen_ids():
@@ -51,6 +53,52 @@ def save_sold_times(entries):
     SOLD_TIMES_FILE.write_text(json.dumps(entries, indent=2) + "\n")
 
 
+def load_positions():
+    if not POSITIONS_FILE.exists():
+        return {}
+    return json.loads(POSITIONS_FILE.read_text())
+
+
+def save_positions(positions):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    POSITIONS_FILE.write_text(json.dumps(positions, indent=2, sort_keys=True) + "\n")
+
+
+def load_reorder_events():
+    if not REORDER_EVENTS_FILE.exists():
+        return []
+    return json.loads(REORDER_EVENTS_FILE.read_text())
+
+
+def save_reorder_events(events):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    REORDER_EVENTS_FILE.write_text(json.dumps(events, indent=2) + "\n")
+
+
+def detect_reorder(products, prev_positions):
+    """Detect if the relative order of items present in both snapshots changed
+    (ignores pure position-number shifts caused by new items being inserted)."""
+    if not prev_positions:
+        return None
+
+    names = {str(p["id"]): p["name"] for p in products}
+    current_positions = {str(p["id"]): p["position"] for p in products}
+    common_ids = set(prev_positions) & set(current_positions)
+    if len(common_ids) < 2:
+        return None
+
+    prev_order = sorted(common_ids, key=lambda i: prev_positions[i])
+    current_order = sorted(common_ids, key=lambda i: current_positions[i])
+    if prev_order == current_order:
+        return None
+
+    return {
+        "detected_at": datetime.now(timezone.utc).isoformat(),
+        "previous_order": [names[i] for i in prev_order],
+        "new_order": [names[i] for i in current_order],
+    }
+
+
 def detect_sold_out(products, prev_status):
     now = datetime.now(timezone.utc)
     events = []
@@ -74,6 +122,7 @@ def main():
     seen_ids = load_seen_ids()
     first_run = len(seen_ids) == 0
     prev_status = load_status()
+    prev_positions = load_positions()
 
     products = fetch_products()
     current_ids = {p["id"] for p in products}
@@ -98,7 +147,20 @@ def main():
     log.extend(sold_events)
     save_sold_times(log)
 
+    reorder_event = detect_reorder(products, prev_positions)
+    events = load_reorder_events()
+    if reorder_event:
+        events.append(reorder_event)
+        numbered = "\n".join(f"{i+1}. {name}" for i, name in enumerate(reorder_event["new_order"]))
+        send_email(
+            "Shop item order changed",
+            "The relative order of items in the shop just changed - possibly a sign "
+            f"Frank is rearranging ahead of a new listing.\n\nNew order:\n{numbered}",
+        )
+    save_reorder_events(events)
+
     save_status({str(p["id"]): p.get("status") for p in products})
+    save_positions({str(p["id"]): p["position"] for p in products})
     save_seen_ids(seen_ids | current_ids)
 
 
