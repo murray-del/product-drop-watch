@@ -6,8 +6,9 @@ import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-STORE_NAME = "Paper Frank (FranksLemonadeStand)"
-PRODUCTS_URL = "https://frankslemonadestand.bigcartel.com/products.json"
+STORE_NAME = os.environ.get("STORE_DISPLAY_NAME", "the shop")
+STORE_BASE_URL = os.environ["STORE_BASE_URL"]
+PRODUCTS_URL = STORE_BASE_URL + "/products.json"
 
 GMAIL_ADDRESS = os.environ["GMAIL_ADDRESS"]
 GMAIL_APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
@@ -16,7 +17,7 @@ NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "murray@murrayabeles.com")
 
 def fetch_products():
     req = urllib.request.Request(
-        PRODUCTS_URL, headers={"User-Agent": "paperfrank-drop-alert/1.0"}
+        PRODUCTS_URL, headers={"User-Agent": "product-watch/1.0"}
     )
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.loads(resp.read().decode())
@@ -38,7 +39,7 @@ def send_email(subject, text_body, html_body=None):
 
 
 def product_url(product):
-    return "https://frankslemonadestand.bigcartel.com" + product["url"]
+    return STORE_BASE_URL + product["url"]
 
 
 def product_image(product):

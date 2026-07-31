@@ -1,4 +1,4 @@
-name: Check Paper Frank drops
+name: Product drop checker
 
 on:
   schedule:
@@ -24,6 +24,8 @@ jobs:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+          STORE_BASE_URL: ${{ secrets.STORE_BASE_URL }}
+          STORE_DISPLAY_NAME: ${{ secrets.STORE_DISPLAY_NAME }}
 
       - name: Commit updated state
         run: |

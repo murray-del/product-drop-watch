@@ -42,9 +42,9 @@ def main():
     elif new_products:
         text_body = "\n\n".join(describe_text(p) for p in new_products)
         html_body = "".join(describe_html(p) for p in new_products)
-        subject = f"New Paper Frank drop: {new_products[0]['name']}"
+        subject = f"New drop: {new_products[0]['name']}"
         if len(new_products) > 1:
-            subject = f"{len(new_products)} new Paper Frank drops!"
+            subject = f"{len(new_products)} new drops!"
         send_email(subject, text_body, html_body)
 
     save_seen_ids(seen_ids | current_ids)
