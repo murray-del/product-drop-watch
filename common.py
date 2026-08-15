@@ -48,6 +48,21 @@ def listed_at(product):
     return local.strftime("%b %d, %Y"), local.strftime("%-I:%M %p %Z")
 
 
+def format_duration(minutes):
+    total_seconds = int(minutes * 60)
+    days, rem = divmod(total_seconds, 86400)
+    hours, rem = divmod(rem, 3600)
+    mins, _ = divmod(rem, 60)
+    parts = []
+    if days:
+        parts.append(f"{days}d")
+    if hours:
+        parts.append(f"{hours}h")
+    if mins or not parts:
+        parts.append(f"{mins}m")
+    return " ".join(parts)
+
+
 def product_url(product):
     return STORE_BASE_URL + product["url"]
 
