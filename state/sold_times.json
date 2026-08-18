@@ -40,5 +40,12 @@
     "created_at": "2026-08-17T04:24:17.000Z",
     "sold_out_detected_at": "2026-08-17T10:10:15.926839+00:00",
     "minutes_to_sell": 346.0
+  },
+  {
+    "id": 120686322,
+    "name": "\u201cYellow Daze\u201d 7 of 10 Hand Painted Skateboard",
+    "created_at": "2026-08-17T04:25:59.000Z",
+    "sold_out_detected_at": "2026-08-18T23:46:11.769620+00:00",
+    "minutes_to_sell": 2600.2
   }
 ]
