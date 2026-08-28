@@ -29,6 +29,7 @@ jobs:
           STORE_DISPLAY_NAME: ${{ secrets.STORE_B_DISPLAY_NAME }}
           STORE_PLATFORM: shopify
           STATE_SUBDIR: storeb
+          CATEGORY_PRIORITY: original-art,prints-posters,featured-products
 
       - name: Commit updated state
         run: |

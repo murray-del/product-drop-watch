@@ -98,7 +98,10 @@ def main():
     prev_digest_at = load_last_digest_at()
 
     products = fetch_products()
-    available = [p for p in products if p.get("status") == "active"]
+    available = sorted(
+        (p for p in products if p.get("status") == "active"),
+        key=lambda p: p.get("position") if p.get("position") is not None else 0,
+    )
     history = sorted(products, key=lambda p: p["created_at"], reverse=True)
 
     recently_sold = []
@@ -108,10 +111,29 @@ def main():
         ]
         recently_sold.sort(key=lambda e: e["sold_out_detected_at"], reverse=True)
 
+    newly_listed = []
+    if prev_digest_at:
+        newly_listed = [p for p in available if p["created_at"] > prev_digest_at]
+    new_ids = {p["id"] for p in newly_listed}
+    regular = [p for p in available if p["id"] not in new_ids]
+
     if available:
-        text_body = "\n\n".join(describe_text(p) for p in available)
-        html_body = "".join(describe_html(p) for p in available)
+        text_parts, html_parts = [], []
+        if newly_listed:
+            text_parts.append(
+                "New since last digest:\n\n" + "\n\n".join(describe_text(p) for p in newly_listed)
+            )
+            html_parts.append(
+                "<h3>New since last digest</h3>" + "".join(describe_html(p) for p in newly_listed)
+            )
+        if regular:
+            text_parts.append("\n\n".join(describe_text(p) for p in regular))
+            html_parts.append("".join(describe_html(p) for p in regular))
+        text_body = "\n\n".join(text_parts)
+        html_body = "".join(html_parts)
         subject = f"Daily digest: {len(available)} piece(s) available at {STORE_NAME}"
+        if newly_listed:
+            subject = f"NEW PRODUCT ALERT - {subject}"
     else:
         text_body = "Nothing currently available in the shop."
         html_body = "<p>Nothing currently available in the shop.</p>"

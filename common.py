@@ -13,6 +13,7 @@ LISTING_TZ = ZoneInfo("America/New_York")
 STORE_NAME = os.environ.get("STORE_DISPLAY_NAME", "the shop")
 STORE_BASE_URL = os.environ["STORE_BASE_URL"]
 STORE_PLATFORM = os.environ.get("STORE_PLATFORM", "bigcartel")
+CATEGORY_PRIORITY = [h.strip() for h in os.environ.get("CATEGORY_PRIORITY", "").split(",") if h.strip()]
 PRODUCTS_URL = STORE_BASE_URL + "/products.json"
 
 GMAIL_ADDRESS = os.environ["GMAIL_ADDRESS"]
@@ -26,17 +27,48 @@ def _fetch_json(url):
         return json.loads(resp.read().decode())
 
 
+def _tiered_position(product_categories, native_position):
+    """tier by first matching CATEGORY_PRIORITY permalink (else last), broken
+    within a tier by the store's own native position."""
+    permalinks = {c["permalink"] for c in product_categories}
+    tier = next((i for i, h in enumerate(CATEGORY_PRIORITY) if h in permalinks), len(CATEGORY_PRIORITY))
+    return tier * 1_000_000 + native_position
+
+
 def _fetch_bigcartel_products():
-    return _fetch_json(PRODUCTS_URL)
+    data = _fetch_json(PRODUCTS_URL)
+    if not CATEGORY_PRIORITY:
+        return data
+    for p in data:
+        p["position"] = _tiered_position(p.get("categories") or [], p["position"])
+    return data
+
+
+def _shopify_category_positions():
+    """Rank id -> flattened position based on CATEGORY_PRIORITY: products in the
+    first listed collection sort first (in that collection's own order), then
+    the next collection, etc. Products in none of the priority collections sort
+    last, in the order the main product feed returns them."""
+    positions = {}
+    tier_size = 1_000_000
+    for tier, handle in enumerate(CATEGORY_PRIORITY):
+        data = _fetch_json(STORE_BASE_URL + f"/collections/{handle}/products.json?limit=250")
+        for index, p in enumerate(data["products"]):
+            positions.setdefault(p["id"], tier * tier_size + index)
+    return positions
 
 
 def _fetch_shopify_products():
     data = _fetch_json(STORE_BASE_URL + "/products.json?limit=250")
+    category_positions = _shopify_category_positions() if CATEGORY_PRIORITY else {}
+    fallback_tier = len(CATEGORY_PRIORITY) * 1_000_000
+
     normalized = []
-    for p in data["products"]:
+    for index, p in enumerate(data["products"]):
         variants = p.get("variants") or []
         prices = [float(v["price"]) for v in variants if v.get("price") is not None]
         available = any(v.get("available") for v in variants)
+        position = category_positions.get(p["id"], fallback_tier + index) if CATEGORY_PRIORITY else None
         normalized.append(
             {
                 "id": p["id"],
@@ -46,7 +78,7 @@ def _fetch_shopify_products():
                 "created_at": p["created_at"],
                 "url": f"/products/{p['handle']}",
                 "images": [{"url": img["src"]} for img in (p.get("images") or [])],
-                "position": None,
+                "position": position,
             }
         )
     return normalized
