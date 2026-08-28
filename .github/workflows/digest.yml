@@ -20,7 +20,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: python digest.py
+      - name: Digest store A
+        run: python digest.py
         env:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -29,10 +30,24 @@ jobs:
           STORE_DISPLAY_NAME: ${{ secrets.STORE_DISPLAY_NAME }}
           CATEGORY_PRIORITY: paintings,prints,apparel
 
+      - name: Digest store B
+        if: always()
+        run: python digest.py
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+          STORE_BASE_URL: ${{ secrets.STORE_B_BASE_URL }}
+          STORE_DISPLAY_NAME: ${{ secrets.STORE_B_DISPLAY_NAME }}
+          STORE_PLATFORM: shopify
+          STATE_SUBDIR: storeb
+          CATEGORY_PRIORITY: original-art,prints-posters,featured-products
+
       - name: Commit updated state
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add state/last_digest_at.json
+          git add state/last_digest_at.json state/storeb/last_digest_at.json
           git diff --staged --quiet || git commit -m "Update last digest timestamp"
           git push
