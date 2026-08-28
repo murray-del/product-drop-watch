@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: check-workflow-storeb
+  group: state-commit
   cancel-in-progress: false
 
 jobs:

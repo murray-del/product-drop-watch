@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: digest-workflow-storeb
+  group: state-commit
   cancel-in-progress: false
 
 jobs:
