@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -12,7 +13,12 @@ from common import (
     describe_html,
 )
 
-STATE_DIR = Path(__file__).parent / "state"
+_state_subdir = os.environ.get("STATE_SUBDIR")
+STATE_DIR = (
+    Path(__file__).parent / "state" / _state_subdir
+    if _state_subdir
+    else Path(__file__).parent / "state"
+)
 STATE_FILE = STATE_DIR / "seen_ids.json"
 STATUS_FILE = STATE_DIR / "status.json"
 SOLD_TIMES_FILE = STATE_DIR / "sold_times.json"
@@ -137,9 +143,9 @@ def main():
     elif new_products:
         text_body = "\n\n".join(describe_text(p) for p in new_products)
         html_body = "".join(describe_html(p) for p in new_products)
-        subject = f"New drop: {new_products[0]['name']}"
+        subject = f"New drop at {STORE_NAME}: {new_products[0]['name']}"
         if len(new_products) > 1:
-            subject = f"{len(new_products)} new drops!"
+            subject = f"{len(new_products)} new drops at {STORE_NAME}!"
         send_email(subject, text_body, html_body)
 
     sold_events = detect_sold_out(products, prev_status)
@@ -153,9 +159,9 @@ def main():
         events.append(reorder_event)
         numbered = "\n".join(f"{i+1}. {name}" for i, name in enumerate(reorder_event["new_order"]))
         send_email(
-            "Shop item order changed",
+            f"Shop item order changed: {STORE_NAME}",
             "The relative order of items in the shop just changed - possibly a sign "
-            f"Frank is rearranging ahead of a new listing.\n\nNew order:\n{numbered}",
+            f"of rearranging ahead of a new listing.\n\nNew order:\n{numbered}",
         )
     save_reorder_events(events)
 

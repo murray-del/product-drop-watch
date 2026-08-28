@@ -12,6 +12,7 @@ LISTING_TZ = ZoneInfo("America/New_York")
 
 STORE_NAME = os.environ.get("STORE_DISPLAY_NAME", "the shop")
 STORE_BASE_URL = os.environ["STORE_BASE_URL"]
+STORE_PLATFORM = os.environ.get("STORE_PLATFORM", "bigcartel")
 PRODUCTS_URL = STORE_BASE_URL + "/products.json"
 
 GMAIL_ADDRESS = os.environ["GMAIL_ADDRESS"]
@@ -19,12 +20,42 @@ GMAIL_APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "murray@murrayabeles.com")
 
 
-def fetch_products():
-    req = urllib.request.Request(
-        PRODUCTS_URL, headers={"User-Agent": "product-watch/1.0"}
-    )
+def _fetch_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "product-watch/1.0"})
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.loads(resp.read().decode())
+
+
+def _fetch_bigcartel_products():
+    return _fetch_json(PRODUCTS_URL)
+
+
+def _fetch_shopify_products():
+    data = _fetch_json(STORE_BASE_URL + "/products.json?limit=250")
+    normalized = []
+    for p in data["products"]:
+        variants = p.get("variants") or []
+        prices = [float(v["price"]) for v in variants if v.get("price") is not None]
+        available = any(v.get("available") for v in variants)
+        normalized.append(
+            {
+                "id": p["id"],
+                "name": p["title"],
+                "price": min(prices) if prices else None,
+                "status": "active" if available else "sold-out",
+                "created_at": p["created_at"],
+                "url": f"/products/{p['handle']}",
+                "images": [{"url": img["src"]} for img in (p.get("images") or [])],
+                "position": None,
+            }
+        )
+    return normalized
+
+
+def fetch_products():
+    if STORE_PLATFORM == "shopify":
+        return _fetch_shopify_products()
+    return _fetch_bigcartel_products()
 
 
 def send_email(subject, text_body, html_body=None):

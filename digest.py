@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import html
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,7 +15,12 @@ from common import (
     format_duration,
 )
 
-STATE_DIR = Path(__file__).parent / "state"
+_state_subdir = os.environ.get("STATE_SUBDIR")
+STATE_DIR = (
+    Path(__file__).parent / "state" / _state_subdir
+    if _state_subdir
+    else Path(__file__).parent / "state"
+)
 SOLD_TIMES_FILE = STATE_DIR / "sold_times.json"
 LAST_DIGEST_FILE = STATE_DIR / "last_digest_at.json"
 
