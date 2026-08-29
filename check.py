@@ -13,6 +13,8 @@ from common import (
     describe_html,
 )
 
+REORDER_ALERTS_ENABLED = os.environ.get("REORDER_ALERTS", "true").lower() != "false"
+
 _state_subdir = os.environ.get("STATE_SUBDIR")
 STATE_DIR = (
     Path(__file__).parent / "state" / _state_subdir
@@ -157,12 +159,13 @@ def main():
     events = load_reorder_events()
     if reorder_event:
         events.append(reorder_event)
-        numbered = "\n".join(f"{i+1}. {name}" for i, name in enumerate(reorder_event["new_order"]))
-        send_email(
-            f"Shop item order changed: {STORE_NAME}",
-            "The relative order of items in the shop just changed - possibly a sign "
-            f"of rearranging ahead of a new listing.\n\nNew order:\n{numbered}",
-        )
+        if REORDER_ALERTS_ENABLED:
+            numbered = "\n".join(f"{i+1}. {name}" for i, name in enumerate(reorder_event["new_order"]))
+            send_email(
+                f"Shop item order changed: {STORE_NAME}",
+                "The relative order of items in the shop just changed - possibly a sign "
+                f"of rearranging ahead of a new listing.\n\nNew order:\n{numbered}",
+            )
     save_reorder_events(events)
 
     save_status({str(p["id"]): p.get("status") for p in products})

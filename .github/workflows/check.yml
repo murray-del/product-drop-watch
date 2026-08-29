@@ -45,6 +45,7 @@ jobs:
           STORE_PLATFORM: shopify
           STATE_SUBDIR: storeb
           CATEGORY_PRIORITY: original-art,prints-posters,featured-products
+          REORDER_ALERTS: "false"
 
       - name: Commit updated state
         if: always()
