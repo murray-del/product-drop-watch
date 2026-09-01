@@ -1,6 +1,8 @@
 import html
 import os
 import smtplib
+import time
+import urllib.error
 import urllib.request
 import json
 from datetime import datetime
@@ -21,10 +23,16 @@ GMAIL_APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", "murray@murrayabeles.com")
 
 
-def _fetch_json(url):
+def _fetch_json(url, attempts=3):
     req = urllib.request.Request(url, headers={"User-Agent": "product-watch/1.0"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read().decode())
+    for attempt in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return json.loads(resp.read().decode())
+        except (urllib.error.HTTPError, urllib.error.URLError):
+            if attempt == attempts:
+                raise
+            time.sleep(2 * attempt)
 
 
 def _tiered_position(product_categories, native_position):
