@@ -117,5 +117,12 @@
     "created_at": "2026-09-18T01:01:18.000Z",
     "sold_out_detected_at": "2026-09-19T19:25:11.896804+00:00",
     "minutes_to_sell": 2543.9
+  },
+  {
+    "id": 121173876,
+    "name": "ARTFUL PULLS: Pikachu Painting",
+    "created_at": "2026-09-18T00:52:57.000Z",
+    "sold_out_detected_at": "2026-09-19T19:49:10.282844+00:00",
+    "minutes_to_sell": 2576.2
   }
 ]
