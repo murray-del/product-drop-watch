@@ -124,5 +124,12 @@
     "created_at": "2026-09-18T00:52:57.000Z",
     "sold_out_detected_at": "2026-09-19T19:49:10.282844+00:00",
     "minutes_to_sell": 2576.2
+  },
+  {
+    "id": 121174080,
+    "name": "ARTFUL PULLS: Mew Painting",
+    "created_at": "2026-09-18T01:07:50.000Z",
+    "sold_out_detected_at": "2026-09-19T20:04:48.665528+00:00",
+    "minutes_to_sell": 2577.0
   }
 ]
