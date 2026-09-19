@@ -138,5 +138,19 @@
     "created_at": "2026-09-18T01:08:34.000Z",
     "sold_out_detected_at": "2026-09-19T22:56:12.981295+00:00",
     "minutes_to_sell": 2747.6
+  },
+  {
+    "id": 121173942,
+    "name": "ARTFUL PULLS: Electrode Painting",
+    "created_at": "2026-09-18T00:57:07.000Z",
+    "sold_out_detected_at": "2026-09-19T23:03:10.256163+00:00",
+    "minutes_to_sell": 2766.1
+  },
+  {
+    "id": 121174134,
+    "name": "ARTFUL PULLS: Gengar Painting",
+    "created_at": "2026-09-18T01:12:52.000Z",
+    "sold_out_detected_at": "2026-09-19T23:03:10.256163+00:00",
+    "minutes_to_sell": 2750.3
   }
 ]
