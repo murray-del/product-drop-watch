@@ -40,5 +40,19 @@
     "created_at": "2026-08-16T16:33:22+01:00",
     "sold_out_detected_at": "2026-09-23T16:42:14.055915+00:00",
     "minutes_to_sell": 54788.9
+  },
+  {
+    "id": 8780250054828,
+    "name": "Absolute Batman #24 \u2013 Signed Jock Exclusive Virgin Foil Variant",
+    "created_at": "2026-09-25T11:11:47+01:00",
+    "sold_out_detected_at": "2026-09-27T06:13:12.868680+00:00",
+    "minutes_to_sell": 2641.4
+  },
+  {
+    "id": 7631198519468,
+    "name": "The Art of Jock (HC) - SIGNED & SKETCHED",
+    "created_at": "2023-05-23T13:58:09+01:00",
+    "sold_out_detected_at": "2026-09-27T06:13:12.868680+00:00",
+    "minutes_to_sell": 1760715.1
   }
 ]
