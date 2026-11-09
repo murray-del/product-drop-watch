@@ -208,5 +208,26 @@
     "created_at": "2026-11-04T17:27:51.000Z",
     "sold_out_detected_at": "2026-11-09T15:55:13.183781+00:00",
     "minutes_to_sell": 7107.4
+  },
+  {
+    "id": 121945221,
+    "name": "Paperfrank \u201cEmo7ional\u201d 20x20 Print ",
+    "created_at": "2026-11-04T20:23:23.000Z",
+    "sold_out_detected_at": "2026-11-09T15:56:12.931754+00:00",
+    "minutes_to_sell": 6932.8
+  },
+  {
+    "id": 121944090,
+    "name": "Paperfrank Coloring Book",
+    "created_at": "2026-11-04T19:11:46.000Z",
+    "sold_out_detected_at": "2026-11-09T15:56:12.931754+00:00",
+    "minutes_to_sell": 7004.4
+  },
+  {
+    "id": 121943808,
+    "name": "\u201cJAW BREAKER\u201d PaperFrank Original Painting 12/12",
+    "created_at": "2026-11-04T18:57:00.000Z",
+    "sold_out_detected_at": "2026-11-09T15:56:12.931754+00:00",
+    "minutes_to_sell": 7019.2
   }
 ]
