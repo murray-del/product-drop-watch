@@ -299,5 +299,12 @@
     "created_at": "2026-11-04T18:43:51.000Z",
     "sold_out_detected_at": "2026-11-09T15:57:11.092580+00:00",
     "minutes_to_sell": 7033.3
+  },
+  {
+    "id": 121944090,
+    "name": "PaperFrank Coloring Book",
+    "created_at": "2026-11-04T19:11:46.000Z",
+    "sold_out_detected_at": "2026-11-24T20:22:19.834908+00:00",
+    "minutes_to_sell": 28870.6
   }
 ]
